@@ -72,10 +72,6 @@ CmmRIL[1:5,360:365]
 dim(CmmRIL)
 write.csv(CmmRIL[2:160,],"1.2_Cmm-RIL_012.csv",row.names = FALSE)
 
-# Clear working space and set directory 
-rm(list = ls(all = TRUE))
-setwd("C:/Users/suvda/Desktop/Data/Marker")
-
 
 
 ##################### Conversion to A, B, H Format #########################
@@ -147,7 +143,7 @@ dim(CmmRIL)
 CmmRIL<-CmmRIL[,complete.cases(CmmRIL[1,])]
 dim(CmmRIL)
 
-# Recode FG02-188 SNP calls to A (or AA, or 1)
+# Recode FG02-188 SNP calls to A (positive allele)
 CmmRIL[1,2:370]=ifelse(CmmRIL[1,1]=="FG02-188", "A", "A")
 CmmRIL[1:5,1:4]
 CmmRIL[1:5,360:365]
