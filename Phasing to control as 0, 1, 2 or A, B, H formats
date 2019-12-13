@@ -1,0 +1,162 @@
+# The raw genotype data is returned as A, T, G, C or A/T etc....
+# In Excel: replace FAIL data point to NA, move FG02-188 (control) to top row
+
+###################### Conversion to 0, 1, 2 Format ########################
+############################################################################
+############################################################################
+rm(list = ls(all = TRUE))
+setwd("C:/Users/suvda/Desktop/Data/Marker")
+
+################ Import Cmm-RIL raw genotype data and exam #################
+CmmRIL=read.csv("0.1_Cmm-RIL_raw.csv", header=T, colClasses=c("factor"))
+str(Cmm) ## "T" was recognized as logi (True), colClass is important
+dim(CmmRIL)
+CmmRIL<-as.matrix(CmmRIL)
+CmmRIL[1:5,1:3]
+
+# Loop to rephase according to FG02-188 (SNP call as A)
+for (i in 2:nrow(CmmRIL)){
+  CmmRIL[i,][(CmmRIL[1,]==CmmRIL[i,])&(CmmRIL[1,]!="NA")]<-2
+
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="T")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="G")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="C")]<-0
+  
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="A")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="G")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="C")]<-0
+  
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="A")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="T")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="C")]<-0
+  
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="A")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="T")]<-0
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="G")]<-0
+  
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="A / T")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="A / G")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="A / C")]<-1
+  
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="A / T")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="T / G")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="T / C")]<-1
+  
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="A / G")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="T / G")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="C / G")]<-1
+  
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="A / C")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="T / C")]<-1
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="C / G")]<-1
+}
+
+# Examing the output
+CmmRIL[1:5,1:4]
+
+# Replace FG02-188 heterozygous SNP marker(s) to NA
+CmmRIL[1,][(CmmRIL[1,]=="A / T")|(CmmRIL[1,]=="A / G")|(CmmRIL[1,]=="T / C")|(CmmRIL[1,]=="G / C")]<-NA
+# Or(?): Cmm[1,][(Cmm[1,]!="A")&(Cmm[1,]!="T")&(Cmm[1,]!="G")&(Cmm[1,]!="C")]<-NA
+
+# Drop NA FG02-188 SNP markers
+dim(CmmRIL)
+CmmRIL<-CmmRIL[,complete.cases(CmmRIL[1,])]
+dim(CmmRIL)
+
+# Recode FG02-188 SNP calls to 2 (positive allele)
+CmmRIL[1,2:370]=ifelse(CmmRIL[1,1]=="FG02-188", 2, 2)
+CmmRIL[1:5,1:4]
+CmmRIL[1:5,360:365]
+
+# Write out the result as 0, 1, 2 format
+dim(CmmRIL)
+write.csv(CmmRIL[2:160,],"1.2_Cmm-RIL_012.csv",row.names = FALSE)
+
+# Clear working space and set directory 
+rm(list = ls(all = TRUE))
+setwd("C:/Users/suvda/Desktop/Data/Marker")
+
+
+
+##################### Conversion to A, B, H Format #########################
+############################################################################
+############################################################################
+rm(list = ls(all = TRUE))
+setwd("C:/Users/suvda/Desktop/Data/Marker")
+
+################# Import Cmm-RIL raw genotype data and exam ################
+CmmRIL=read.csv("0.1_Cmm-RIL_raw.csv", header=T, colClasses=c("factor"))
+str(Cmm) ## "T" was recognized as logi (True), colClass is important
+dim(CmmRIL)
+CmmRIL<-as.matrix(CmmRIL)
+CmmRIL[1:5,1:3]
+
+# Loop to rephase according to FG02-188 (SNP call as A)
+for (i in 2:nrow(CmmRIL)){
+  CmmRIL[i,][(CmmRIL[1,]==CmmRIL[i,])&(CmmRIL[1,]!="NA")]<-"AA"
+  ## It is important to code the control as "AA" first, and change to "A" later
+  ### Coded as "AA" to avoid comfusions with the existing "A" SNP
+  
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="T")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="G")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="C")]<-"B"
+  
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="A")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="G")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="C")]<-"B"
+  
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="A")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="T")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="C")]<-"B"
+  
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="A")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="T")]<-"B"
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="G")]<-"B"
+  
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="A / T")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="A / G")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="A")&(CmmRIL[i,]=="A / C")]<-"H"
+  
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="A / T")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="T / G")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="T")&(CmmRIL[i,]=="T / C")]<-"H"
+  
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="A / G")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="T / G")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="G")&(CmmRIL[i,]=="C / G")]<-"H"
+  
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="A / C")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="T / C")]<-"H"
+  CmmRIL[i,][(CmmRIL[1,]=="C")&(CmmRIL[i,]=="C / G")]<-"H"
+}
+
+# Recode AA to A 
+CmmRIL[1:5,1:4]
+CmmRIL[(CmmRIL[,]=="AA")] <- "A"
+# Examing the output
+CmmRIL[1:5,1:4]
+CmmRIL[1:5,360:365]
+
+# Replace FG02-188 heterozygous SNP marker(s) to NA
+CmmRIL[1,][(CmmRIL[1,]=="A / T")|(CmmRIL[1,]=="A / G")|(CmmRIL[1,]=="T / C")|(CmmRIL[1,]=="G / C")]<-NA
+ # Or(?): Cmm[1,][(Cmm[1,]!="A")&(Cmm[1,]!="T")&(Cmm[1,]!="G")&(Cmm[1,]!="C")]<-NA
+str(CmmRIL)
+
+# Drop NA FG02-188 SNP markers
+dim(CmmRIL)
+CmmRIL<-CmmRIL[,complete.cases(CmmRIL[1,])]
+dim(CmmRIL)
+
+# Recode FG02-188 SNP calls to A (or AA, or 1)
+CmmRIL[1,2:370]=ifelse(CmmRIL[1,1]=="FG02-188", "A", "A")
+CmmRIL[1:5,1:4]
+CmmRIL[1:5,360:365]
+
+# Write out the result as ABH format
+dim(CmmRIL)
+write.csv(CmmRIL[2:160,],"1.1_Cmm-RIL_ABH.csv",row.names = FALSE)
+
+# Write out the result as AB and NA format
+# CmmRIL1<-replace(CmmRIL[],CmmRIL[]=="H",value = "NA")
+# CmmRIL1[1:5,360:365]
+# write.csv(CmmRIL1[2:160,],"1.2_Cmm-RIL_AB.csv",row.names = FALSE)
