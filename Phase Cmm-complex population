@@ -1,0 +1,159 @@
+# The raw genotype data is returned as A, T, G, C or A/T etc....
+# In Excel: replace FAIL data point to NA, move OH8245 (control) to top row
+
+###################### Conversion to 0, 1, 2 Format ########################
+############################################################################
+############################################################################
+rm(list = ls(all = TRUE))
+setwd("C:/Users/suvda/Desktop/Data/Marker")
+
+############ Import Cmm-complex raw genotype data and exam ############
+CmmCom=read.csv("0.2_Cmm-complex_raw.csv", header=T, colClasses=c("factor"))
+str(Cmm) ## "T" was recognized as logi (True), colClass is important
+dim(CmmCom)
+CmmCom<-as.matrix(CmmCom)
+CmmCom[1:5,1:3]
+
+# Loop to rephase according to OH8245 (SNP call as A)
+for (i in 2:nrow(CmmCom)){
+  CmmCom[i,][(CmmCom[1,]==CmmCom[i,])&(CmmCom[1,]!="NA")]<-2
+  
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="T")]<-0
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="G")]<-0
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="C")]<-0
+  
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="A")]<-0
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="G")]<-0
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="C")]<-0
+  
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="A")]<-0
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="T")]<-0
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="C")]<-0
+  
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="A")]<-0
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="T")]<-0
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="G")]<-0
+  
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="A / T")]<-1
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="A / G")]<-1
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="A / C")]<-1
+  
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="A / T")]<-1
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="T / G")]<-1
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="T / C")]<-1
+  
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="A / G")]<-1
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="T / G")]<-1
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="C / G")]<-1
+  
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="A / C")]<-1
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="T / C")]<-1
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="C / G")]<-1
+}
+
+# Examing the output
+CmmCom[1:5,1:4]
+CmmCom[1:5,375:380]
+
+# Replace Cmm[1,] heterozygous SNP marker(s) to NA
+CmmCom[1,][(CmmCom[1,]=="A / T")|(CmmCom[1,]=="A / G")|(CmmCom[1,]=="T / C")|(CmmCom[1,]=="G / C")]<-NA
+# Or(?): Cmm[1,][(Cmm[1,]!="A")&(Cmm[1,]!="T")&(Cmm[1,]!="G")&(Cmm[1,]!="C")]<-NA
+
+# Drop NA Cmm[1,] SNP markers
+dim(CmmCom)
+CmmCom<-CmmCom[,complete.cases(CmmCom[1,])]
+dim(CmmCom)
+
+# Recode Cmm[1,] SNP calls to 2 (positive allele)
+CmmCom[1,2:371]=ifelse(CmmCom[1,1]=="OH8245", 2, 2)
+CmmCom[1:5,1:4]
+CmmCom[1:5,360:365]
+
+# Write out the result as ABH format
+dim(CmmCom)
+write.csv(CmmCom[2:181,],"1.4_Cmm-complex_012.csv",row.names = FALSE)
+
+
+
+##################### Conversion to A, B, H Format #########################
+############################################################################
+############################################################################
+rm(list = ls(all = TRUE))
+setwd("C:/Users/suvda/Desktop/Data/Marker")
+
+############### Import Cmm-complex raw genotype data and exam ##############
+CmmCom=read.csv("0.2_Cmm-complex_raw.csv", header=T, colClasses=c("factor"))
+str(Cmm) ## "T" was recognized as logi (True), colClass is important
+dim(CmmCom)
+CmmCom<-as.matrix(CmmCom)
+CmmCom[1:5,1:3]
+
+# Loop to rephase according to OH8245 (SNP call as A)
+for (i in 2:nrow(CmmCom)){
+  CmmCom[i,][(CmmCom[1,]==CmmCom[i,])&(CmmCom[1,]!="NA")]<-"AA"
+  ## It is important to code the control as "AA" first, and change to "A" later
+  ### Coded as "AA" to avoid comfusions with the existing "A" SNP
+  
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="T")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="G")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="C")]<-"B"
+  
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="A")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="G")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="C")]<-"B"
+  
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="A")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="T")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="C")]<-"B"
+  
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="A")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="T")]<-"B"
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="G")]<-"B"
+  
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="A / T")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="A / G")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="A")&(CmmCom[i,]=="A / C")]<-"H"
+  
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="A / T")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="T / G")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="T")&(CmmCom[i,]=="T / C")]<-"H"
+  
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="A / G")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="T / G")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="G")&(CmmCom[i,]=="C / G")]<-"H"
+  
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="A / C")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="T / C")]<-"H"
+  CmmCom[i,][(CmmCom[1,]=="C")&(CmmCom[i,]=="C / G")]<-"H"
+}
+
+# Recode AA to A 
+CmmCom[1:5,1:4]
+CmmCom[(CmmCom[,]=="AA")] <- "A"
+# Examing the output
+CmmCom[1:5,1:4]
+CmmCom[1:5,375:380]
+
+# Replace Cmm[1,] heterozygous SNP marker(s) to NA
+CmmCom[1,][(CmmCom[1,]=="A / T")|(CmmCom[1,]=="A / G")|(CmmCom[1,]=="T / C")|(CmmCom[1,]=="G / C")]<-NA
+ # Or(?): Cmm[1,][(Cmm[1,]!="A")&(Cmm[1,]!="T")&(Cmm[1,]!="G")&(Cmm[1,]!="C")]<-NA
+str(CmmCom)
+
+# Drop NA Cmm[1,] SNP markers
+dim(CmmCom)
+CmmCom<-CmmCom[,complete.cases(CmmCom[1,])]
+dim(CmmCom)
+
+# Recode Cmm[1,] SNP calls to A (positive allele)
+CmmCom[1,2:371]=ifelse(CmmCom[1,1]=="OH8245", "A", "A")
+CmmCom[1:5,1:4]
+CmmCom[1:5,360:365]
+
+# Write out the result as ABH format
+dim(CmmCom)
+write.csv(CmmCom[2:181,],"1.3_Cmm-complex_ABH.csv",row.names = FALSE)
+
+# Write out the result as AB and NA format
+# CmmCom1<-replace(CmmCom[],CmmCom[]=="H",value = "NA")
+# CmmCom1[1:5,360:365]
+# write.csv(CmmCom1[2:181,],"1.4_Cmm-complex_AB.csv",row.names = FALSE)
